@@ -3,15 +3,16 @@ Adapted from Auto-GPT (https://github.com/Significant-Gravitas/Auto-GPT)
 """
 
 
-from bs4 import BeautifulSoup
-from loopgpt.tools.browser import Browser
-from loopgpt.summarizer import Summarizer
 import atexit
+
 import requests
+from bs4 import BeautifulSoup
+from loopgpt.summarizer import Summarizer
+from loopgpt.tools.browser import Browser
 
 
 class SimpleBrowser(Browser):
-    """Alternative browser implementation that uses requests library instead of the default Google Chrome implementation.
+    """デフォルトの Google Chrome 実装の代わりにリクエスト ライブラリを使用する代替ブラウザ実装です。
 
     Usage:
 

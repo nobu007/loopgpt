@@ -2,30 +2,31 @@
 Adapted from Auto-GPT (https://github.com/Significant-Gravitas/Auto-GPT)
 """
 
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from bs4 import BeautifulSoup
-from selenium.common.exceptions import NoSuchWindowException
-from loopgpt.tools.base_tool import BaseTool
-from selenium.webdriver.support import expected_conditions
-from loopgpt.summarizer import Summarizer
-from loopgpt.logger import logger
-import logging
 import atexit
+import logging
+
+from bs4 import BeautifulSoup
+from loopgpt.logger import logger
+from loopgpt.summarizer import Summarizer
+from loopgpt.tools.base_tool import BaseTool
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchWindowException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 class Browser(BaseTool):
-    """This opens a browser. It opens the url and finds the answer for the query.
-    Provide an empty query if you want to summarize the page.
+    """これはブラウザを開きます。URLを開いて、クエリに対する答えを見つけます。
+    ページを要約したい場合は、クエリを空にしてください。
 
     Args:
         url (str): URL to open.
         query (str): Query to search for.
 
     Returns:
-        Dict: Relevant summary and a list of links extracted from the URL.
+        Dict: URLから抽出された関連する要約とリンクのリスト
 
     """
 

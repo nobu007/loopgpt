@@ -1,11 +1,11 @@
-from loopgpt.tools.base_tool import BaseTool
+import os
 from itertools import islice
 
-import os
+from loopgpt.tools.base_tool import BaseTool
 
 
 class GoogleSearch(BaseTool):
-    """This tool searches google for the given query and returns the results.
+    """このツールは、指定されたクエリを Google で検索し、結果を返します。
 
     Args:
         query (str): The query to search for.

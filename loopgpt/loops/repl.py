@@ -9,13 +9,10 @@ HEADER = r"""
 +------------------------------------------------------------+
 """
 
-from loopgpt.constants import (
-    DEFAULT_AGENT_NAME,
-    DEFAULT_AGENT_DESCRIPTION,
-)
-from colorama import Fore, Style
-
 import os
+
+from colorama import Fore, Style
+from loopgpt.constants import DEFAULT_AGENT_DESCRIPTION, DEFAULT_AGENT_NAME
 
 LOOP_GPT = Fore.GREEN + "LoopGPT"
 REASONING = Fore.LIGHTBLUE_EX + "REASONING"
@@ -155,7 +152,7 @@ def cli(agent, continuous=False):
                             inp = input(
                                 f"Execute? (Y/N/Y:n to execute n steps continuously): "
                             )
-                            yn, n = inp.split(":") if ":" in inp else (inp, 1)
+                            yn, n = inp.split(":") if ":" in inp else (inp, 10)
                             n = int(n)
                             yn = yn.lower().strip()
                             if yn == "exit":

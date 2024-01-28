@@ -1,8 +1,8 @@
+from typing import Optional
+
 import numpy as np
 import openai
 from loopgpt.embeddings.openai_ import OpenAIEmbeddingProvider
-from typing import Optional
-
 from loopgpt.utils.openai_key import get_openai_key
 
 
@@ -31,7 +31,7 @@ class AzureOpenAIEmbeddingProvider(OpenAIEmbeddingProvider):
     def get(self, text: str):
         api_key = get_openai_key(self.api_key)
         return np.array(
-            openai.Embedding.create(
+            openai.embeddings.create(
                 input=[text], engine=self.deployment_id, api_key=api_key
             )["data"][0]["embedding"],
             dtype=np.float32,

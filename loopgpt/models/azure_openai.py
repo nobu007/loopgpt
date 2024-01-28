@@ -1,12 +1,11 @@
-from typing import List, Dict, Optional
+import time
+from typing import Dict, List, Optional
+
+import openai
+import requests
+from loopgpt.logger import logger
 from loopgpt.models.openai_ import OpenAIModel
 from loopgpt.utils.openai_key import get_openai_key
-from loopgpt.logger import logger
-import time
-
-from openai.error import RateLimitError
-import requests
-import openai
 
 
 def get_deployment_details(endpoint, deployment_id, api_version, api_key):
@@ -97,7 +96,7 @@ class AzureOpenAIModel(OpenAIModel):
                 )["choices"][0]["message"]["content"]
                 return resp
 
-            except RateLimitError:
+            except Exception as e:
                 logger.warn("Rate limit exceeded. Retrying after 20 seconds.")
                 time.sleep(20)
                 continue

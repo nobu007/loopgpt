@@ -1,36 +1,35 @@
-from loopgpt.constants import (
-    DEFAULT_RESPONSE_FORMAT_,
-    INIT_PROMPT,
-    DEFAULT_AGENT_NAME,
-    DEFAULT_AGENT_DESCRIPTION,
-    NEXT_PROMPT,
-    DEFAULT_PROMPT_TEMPLATE,
-    AgentStates,
-)
-from loopgpt.memory import from_config as memory_from_config
-from loopgpt.models import (
-    OpenAIModel,
-    AzureOpenAIModel,
-    from_config as model_from_config,
-)
-from loopgpt.tools import builtin_tools, from_config as tool_from_config
-from loopgpt.tools.code import ai_function
-from loopgpt.memory.local_memory import LocalMemory
-from loopgpt.embeddings import OpenAIEmbeddingProvider, AzureOpenAIEmbeddingProvider
-from loopgpt.utils.spinner import spinner
-from loopgpt.loops import cli
-
-
-from typing import *
-from itertools import repeat
+import ast
+import json
+import os
+import re
+import time
 from contextlib import contextmanager
+from itertools import repeat
+from typing import *
 
 import openai
-import json
-import time
-import ast
-import re
-import os
+from loopgpt.constants import (
+    DEFAULT_AGENT_DESCRIPTION,
+    DEFAULT_AGENT_NAME,
+    DEFAULT_PROMPT_TEMPLATE,
+    DEFAULT_RESPONSE_FORMAT_,
+    INIT_PROMPT,
+    NEXT_PROMPT,
+    AgentStates,
+)
+from loopgpt.embeddings import (
+    AzureOpenAIEmbeddingProvider,
+    HuggingFaceEmbeddingProvider,
+    OpenAIEmbeddingProvider,
+)
+from loopgpt.loops import cli
+from loopgpt.memory import from_config as memory_from_config
+from loopgpt.memory.local_memory import LocalMemory
+from loopgpt.models import AzureOpenAIModel, OpenAIModel, YkaLlmModel
+from loopgpt.tools import builtin_tools
+from loopgpt.tools import from_config as tool_from_config
+from loopgpt.tools.code import ai_function
+from loopgpt.utils.spinner import spinner
 
 ACTIVE_AGENT = None
 
@@ -77,12 +76,12 @@ class Agent:
                 )
 
         if model is None:
-            model = OpenAIModel("gpt-3.5-turbo")
+            model = YkaLlmModel("gpt-3.5-turbo")
         elif isinstance(model, str):
-            model = OpenAIModel(model)
+            model = YkaLlmModel(model)
 
         if embedding_provider is None:
-            embedding_provider = OpenAIEmbeddingProvider()
+            embedding_provider = HuggingFaceEmbeddingProvider()
 
         self.name = name
         self.description = description
@@ -220,13 +219,23 @@ class Agent:
             message = [
                 {
                     "role": "user",
+                    "content": f"この会話の要約をお願いします:\n{history}\n\n重要な詳細と結果:"
+                    + "\n- リサーチとデータ収集からの主要な発見を含めてください。\n- 重要なコマンドの実行とその結果を強調してください。\n\n主要なハイライト:"
+                    + "\n- 会話の主要なポイントを箇条書きで要約してください。\n- 関連する情報に焦点を当て、冗長な言い換えを除外してください。\n\n追加のコンテキスト:"
+                    + "\n- 会話中に言及された関連するリンクや参照を提供してください。\n\n要約がタスクの本質的な側面を正確に捉え、"
+                    + "コンテキストと進行を理解するために重要な詳細を含んでいることを確認してください。その後、エージェントによって返された結果を整理し、ユーザーに返信する必要があります。エージェントはユーザーにいくつかの質問をするかもしれませんので、彼らの間のコミュニケーションを容易にする必要があります。エージェントを呼び出す際には、エージェントの作業言語が日本語であることを覚えておくことが重要です。ユーザーが日本語以外の言語でコミュニケーションを取っている場合、エージェントとユーザーの間で翻訳を提供する必要があります。\n\nありがとうございます！",
+                }
+            ]
+            message_en = [
+                {
+                    "role": "user",
                     "content": (
                         f"Please summarize this conversation for me:\n{history}\n\nImportant Details and Results:"
                         + "\n- Include key findings from the research and data collection phases.\n- Highlight important commands"
                         + "executed and their results.\n\nKey Highlights:\n- Summarize the main points of the conversation in bullet points."
                         + "\n- Focus on relevant information and filter out redundant exchanges.\n\nAdditional Context:\n- Provide any relevant links"
                         + " or references mentioned during the conversation.\n\nPlease ensure the summary accurately captures the essential aspects of"
-                        + " the task and includes details that are crucial for understanding the context and progress.\n\nThank you!"
+                        + " the task and includes details that are crucial for understanding the context and progress. Afterward, you need to organize the results returned by the agent and reply to the user. The agent may ask the user some questions, and you will need to facilitate the communication between them. When calling an agent, it is important to note that the working language of the agent is English. If the user is communicating in a language other than English, you will need to provide translation between the agent and the user.\n\nThank you!"
                     ),
                 }
             ]
@@ -314,9 +323,15 @@ class Agent:
                     self.history.append(
                         {
                             "role": "system",
-                            "content": "Completed all user specified tasks.",
+                            "content": "ユーザー指定のタスクをすべて完了しました。",
                         }
                     )
+                    # self.history.append(
+                    #     {
+                    #         "role": "system",
+                    #         "content": "Completed all user specified tasks.",
+                    #     }
+                    # )
                     self.state = AgentStates.STOP
                     return
                 if tool.get("name") != "do_nothing":
@@ -329,9 +344,15 @@ class Agent:
                 self.history.append(
                     {
                         "role": "system",
-                        "content": f"User did not approve running {tool.get('name', tool)}.",
+                        "content": f"ユーザーが実行を承認しませんでした: {tool.get('name', tool)}",
                     }
                 )
+                # self.history.append(
+                #     {
+                #         "role": "system",
+                #         "content": f"User did not approve running {tool.get('name', tool)}.",
+                #     }
+                # )
                 # self.memory.add(
                 #     f"User disapproved running command \"{tool['name']}\" with args {tool['args']} with following feedback\n: {message}"
                 # )
@@ -364,7 +385,8 @@ class Agent:
 
     def _extract_json_with_gpt(self, s):
         func = "def convert_to_json(response: str) -> str:"
-        desc = f"""Convert the given string to a JSON string of the form \n{json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)}\nEnsure the result can be parsed by Python json.loads."""
+        desc = f"""指定された文字列を次の形式の JSON 文字列に変換します。 \n{json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)}\n結果が Python json.loads() で解析できることを確認してください。"""
+        # desc = f"""Convert the given string to a JSON string of the form \n{json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)}\nEnsure the result can be parsed by Python json.loads."""
         res = ai_function(func, desc, [s], self.model)
         return res
 
@@ -424,7 +446,8 @@ class Agent:
             resp = {"response": "Nothing Done."}
         else:
             if "args" not in self.staging_tool:
-                resp = "Command args not provided. Make sure to follow the specified response format."
+                resp = "コマンド引数が指定されていません。指定された応答フォーマットに従ってください。"
+                # resp = "Command args not provided. Make sure to follow the specified response format."
                 self.history.append(
                     {
                         "role": "system",
@@ -488,6 +511,9 @@ class Agent:
         return "\n".join(prompt) + "\n"
 
     def persona_prompt(self):
+        return f"あなたは {self.name} です。 {self.description}。"
+
+    def persona_prompt_en(self):
         return f"You are {self.name}, {self.description}."
 
     def progress_prompt(self):
@@ -517,7 +543,8 @@ class Agent:
 
     def tools_prompt(self, extras=False):
         prompt = []
-        prompt.append("The following commands are already defined for you:")
+        prompt.append("次のコマンドを使えます。")
+        # prompt.append("The following commands are already defined for you:")
         for i, tool in enumerate(self.tools.values()):
             tool.agent = self
             prompt.append(tool.prompt())
@@ -603,7 +630,9 @@ class Agent:
         if hasattr(file, "write"):
             json.dump(cfg, file)
         elif isinstance(file, str):
-            os.makedirs(os.path.dirname(file), exist_ok=True)
+            file_dir = os.path.dirname(file)
+            if file_dir:
+                os.makedirs(file_dir, exist_ok=True)
             with open(file, "w") as f:
                 json.dump(cfg, f)
         else:

@@ -1,14 +1,25 @@
+import os
+import sys
 import time
 from typing import *
 
-import openai
 import tiktoken
 from loopgpt.logger import logger
 from loopgpt.models.base import BaseModel
 from loopgpt.utils.openai_key import get_openai_key
 
+# commonモジュールをインポートする
+COMMON_MOD_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../../../common")
+)
+print("COMMON_MOD_DIR=", COMMON_MOD_DIR)
+sys.path.append(COMMON_MOD_DIR)
 
-class OpenAIModel(BaseModel):
+
+from yka_langchain import yka_langchain_raw
+
+
+class YkaLlmModel(BaseModel):
     def __init__(self, model: str = "gpt-3.5-turbo", api_key: Optional[str] = None):
         self.model = model
         self.api_key = api_key
@@ -23,13 +34,7 @@ class OpenAIModel(BaseModel):
         num_retries = 3
         for i in range(num_retries):
             try:
-                resp = openai.ChatCompletion.create(
-                    model=self.model,
-                    messages=messages,
-                    api_key=api_key,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                )["choices"][0]["message"]["content"]
+                resp = yka_langchain_raw(messages, is_chat=True)
                 return resp
 
             except Exception as e:
@@ -39,11 +44,7 @@ class OpenAIModel(BaseModel):
                     raise
 
     def count_tokens(self, messages: List[Dict[str, str]]) -> int:
-        tokens_per_message, tokens_per_name = {
-            "gpt-3.5-turbo": (4, -1),
-            "gpt-4": (3, 1),
-            "gpt-4-32k": (3, 1),
-        }[self.model]
+        tokens_per_message, tokens_per_name = (4, -1)
         enc = tiktoken.encoding_for_model(self.model)
         num_tokens = 0
         for message in messages:
@@ -56,11 +57,7 @@ class OpenAIModel(BaseModel):
         return num_tokens
 
     def get_token_limit(self) -> int:
-        return {
-            "gpt-3.5-turbo": 4000,
-            "gpt-4": 8000,
-            "gpt-4-32k": 32000,
-        }[self.model]
+        return 4000
 
     def config(self):
         cfg = super().config()

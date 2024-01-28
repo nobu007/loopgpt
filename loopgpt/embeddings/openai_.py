@@ -1,8 +1,9 @@
 from typing import Optional
-from loopgpt.embeddings.base import BaseEmbeddingProvider
-from loopgpt.utils.openai_key import get_openai_key
+
 import numpy as np
 import openai
+from loopgpt.embeddings.base import BaseEmbeddingProvider
+from loopgpt.utils.openai_key import get_openai_key
 
 
 class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
@@ -15,7 +16,7 @@ class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
     def get(self, text: str):
         api_key = get_openai_key(self.api_key)
         return np.array(
-            openai.Embedding.create(
+            openai.embeddings.create(
                 input=[text], model="text-embedding-ada-002", api_key=api_key
             )["data"][0]["embedding"],
             dtype=np.float32,
