@@ -28,6 +28,7 @@ from loopgpt.memory.local_memory import LocalMemory
 from loopgpt.models import AzureOpenAIModel, OpenAIModel, YkaLlmModel
 from loopgpt.tools import builtin_tools
 from loopgpt.tools import from_config as tool_from_config
+from loopgpt.tools import report_tools, research_tools
 from loopgpt.tools.code import ai_function
 from loopgpt.utils.spinner import spinner
 
@@ -93,7 +94,7 @@ class Agent:
         self.memory = LocalMemory(embedding_provider=embedding_provider)
         self.history = []
         if tools is None:
-            tools = [tool_type() for tool_type in builtin_tools()]
+            tools = [tool_type() for tool_type in research_tools()]
         else:
             tools = [tool_type() for tool_type in tools]
         self.tools = {tool.id: tool for tool in tools}

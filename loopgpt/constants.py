@@ -28,8 +28,8 @@ DEFAULT_RESPONSE_FORMAT_EN = {
     "command": {"name": "next command in your plan", "args": {"arg name": "value"}},
 }
 
-DEFAULT_RESPONSE_FORMAT = f"以下のようにJSONフォーマットでのみ応答してください。\nレスポンスフォーマット: \n{json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)}\nPythonのjson.loadsで解析できることを確認してください。"
-DEFAULT_RESPONSE_FORMAT_EN = f"You should only respond in JSON format as described below \nResponse Format: \n{json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)}\nEnsure the response can be parsed by Python json.loads"
+DEFAULT_RESPONSE_FORMAT = f"以下のようにJSONフォーマットでのみ応答してください。\nレスポンスフォーマット: \n{json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4, ensure_ascii=False,)}\nPythonのjson.loadsで解析できることを確認してください。"
+DEFAULT_RESPONSE_FORMAT_EN = f"You should only respond in JSON format as described below \nResponse Format: \n{json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4, ensure_ascii=False,)}\nEnsure the response can be parsed by Python json.loads"
 
 
 NEXT_PROMPT_SMALL = "Next"
@@ -40,7 +40,11 @@ EXPERIMENTAL_NEXT_PROMPT = (
     + "    '''この関数はJSON辞書形式の次のレスポンスを返します。`points`はこのレスポンスで得られるスコアです。\n"
     + "    未知の変数については、任意の値を仮定してかまいません。'''\n"
     + "    json_format = "
-    + json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)
+    + json.dumps(
+        DEFAULT_RESPONSE_FORMAT_,
+        indent=4,
+        ensure_ascii=False,
+    )
     + "\n"
     + "    if (last_command_executed_successfully):\n"
     + "        if (is_empty(current_plan)):\n"
@@ -64,7 +68,11 @@ EXPERIMENTAL_NEXT_PROMPT_EN = (
     + "    '''The function returns your next response as a JSON dictionary. `points` is the score you get for this response.\n"
     + "    You are free to assume the values for any unknown variables.'''\n"
     + "    json_format = "
-    + json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)
+    + json.dumps(
+        DEFAULT_RESPONSE_FORMAT_,
+        indent=4,
+        ensure_ascii=False,
+    )
     + "\n"
     + "    if (last_command_executed_successfully):\n"
     + "        if (is_empty(current_plan)):\n"
@@ -118,7 +126,11 @@ NEXT_PROMPT_EN = (
     + '10 - Execute the "do_nothing" command ONLY if there is no other command to execute.\n'
     + "11 - Make sure to execute commands only with supported arguments.\n"
     + "12 - ONLY RESPOND IN THE FOLLOWING FORMAT: (MAKE SURE THAT IT CAN BE DECODED WITH PYTHON JSON.LOADS())\n"
-    + json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)
+    + json.dumps(
+        DEFAULT_RESPONSE_FORMAT_,
+        indent=4,
+        ensure_ascii=False,
+    )
     + "\n"
 )
 
@@ -140,7 +152,11 @@ INIT_PROMPT_EN = (
     + "1 - Execute the next best command to achieve the goals.\n"
     + '2 - Execute the "do_nothing" command if there is no other command to execute.\n'
     + "3 - ONLY RESPOND IN THE FOLLOWING FORMAT: (MAKE SURE THAT IT CAN BE DECODED WITH PYTHON JSON.LOADS())\n"
-    + json.dumps(DEFAULT_RESPONSE_FORMAT_, indent=4)
+    + json.dumps(
+        DEFAULT_RESPONSE_FORMAT_,
+        indent=4,
+        ensure_ascii=False,
+    )
     + "\n"
 )
 

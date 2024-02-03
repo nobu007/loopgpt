@@ -1,29 +1,28 @@
 from loopgpt.tools.agent_manager import (
     CreateAgent,
-    MessageAgent,
     DeleteAgent,
     ListAgents,
+    MessageAgent,
 )
-from loopgpt.tools.user_manager import AskUser
 from loopgpt.tools.base_tool import BaseTool
 from loopgpt.tools.browser import Browser
-from loopgpt.tools.code import ExecutePythonFile, ReviewCode, ImproveCode, WriteTests
-from loopgpt.tools.math import EvaluateMath
-from loopgpt.tools.google_search import GoogleSearch
+from loopgpt.tools.code import ExecutePythonFile, ImproveCode, ReviewCode, WriteTests
 from loopgpt.tools.filesystem import (
+    AppendToFile,
+    CheckIfFileExists,
+    DeleteFile,
+    FileSystemTools,
+    GetCWD,
+    ListFiles,
+    MakeDirectory,
     ReadFromFile,
     WriteToFile,
-    AppendToFile,
-    DeleteFile,
-    CheckIfFileExists,
-    ListFiles,
-    GetCWD,
-    MakeDirectory,
-    FileSystemTools,
 )
-from loopgpt.tools.shell import Shell
+from loopgpt.tools.google_search import GoogleSearch
+from loopgpt.tools.math import EvaluateMath
 from loopgpt.tools.memory_manager import AddToMemory
-
+from loopgpt.tools.shell import Shell
+from loopgpt.tools.user_manager import AskUser
 
 user_tools = {}
 
@@ -60,4 +59,22 @@ def builtin_tools():
         EvaluateMath,
         AskUser,
         Shell,
+    ]
+
+
+def research_tools():
+    return [
+        GoogleSearch,
+        Browser,
+        Shell,
+        *FileSystemTools,
+    ]
+
+
+def report_tools():
+    return [
+        GoogleSearch,
+        Browser,
+        Shell,
+        *FileSystemTools,
     ]
